@@ -37,7 +37,7 @@ const Auth = (isModel = false) => {
       className={`w-full ${isModel? "max-w-md p-8 rounded-3xl" : "max-w-lg p-12 rounded-\[32px]"} bg-white shadow-2xl border border-gray-200`}>
         <div className="flex items-center justify-center gap-1 mb-6">
           <div className="p-2 rounded-lg">
-             <img className="h-8" src="./public/interviewAI logo.png" alt="logo"/>
+             <img className="h-8" src="/interviewAI%20logo.png" alt="logo"/>
           </div>
 
           <h2 className="text-blue-950 font-semibold text-lg">interview.AI</h2>
