@@ -43,7 +43,7 @@ const Navbar = () => {
 
         <div className='flex items-center gap-1 cursor-pointer'>
             <div className="p-2 rounded-lg">
-             <img className="h-9" src="./public/interviewAI logo.png" alt="logo"/>
+             <img className="h-9" src="/interviewAI%20logo.png" alt="logo"/>
           </div>
 
           <h2 className="text-blue-950 font-semibold text-lg hidden md:block">interview.AI</h2>
