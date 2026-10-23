@@ -187,42 +187,7 @@ Before responding, verify that the output contains exactly 5 questions.`
   },
 ];
 
-    // =========== original code ============
-//     const messages = [
-//       {
-//         role: "system",
-//         content: `You are a real human interviewer conducting a professional interview.
-
-// Speak in simple, natural English as if you are directly talking to the candidate.
-
-// Generate exactly 5 interview questions.
-
-// Strict Rules:
-// - Each question must contain between 15 and 25 words.
-// - Each question must be a single complete sentence.
-// - Do NOT number them.
-// - Do NOT add explanations.
-// - Do NOT add extra text before or after.
-// - One question per line only.
-// - Keep language simple and conversational.
-// - Questions must feel practical and realistic.
-
-// Difficulty progression:
-// Question 1 → easy
-// Question 2 → easy
-// Question 3 → medium
-// Question 4 → medium
-// Question 5 → hard
-
-// Make questions based on the candidate's role, experience, interviewMode, projects, skills, and resume details.`,
-//       },
-//       {
-//         role: "user",
-//         content: userPrompt,
-//       },
-//     ];
-
-    // FIX: Call AI once
+  
     const aiResponse = await askAi({ message: messages });
 
     console.log("RAW AI RESPONSE:", aiResponse);
@@ -233,62 +198,36 @@ Before responding, verify that the output contains exactly 5 questions.`
       });
     }
 
-    // // FIX: Handle line breaks and numbered responses
-    // const questionsArray = cleanAiResponse(aiResponse)
-    //   .split(/\r?\n/)
-    //   .map((question) => question.trim())
-    //   .filter(Boolean)
-    //   .map((question) => question.replace(/^\d+[\).\s-]+/, "").trim())
-    //   .filter(Boolean);
-
-    // ========= original code ==========
-    // const cleanedResponse = cleanAiResponse(aiResponse);
-
-    // let questionsArray = cleanedResponse
-    //   .split(/\r?\n/)
-    //   .map((question) => question.replace(/^\s*\d+[\s.)-]+/, "").trim())
-    //   .filter(Boolean);
-
-    // // If all questions come in one line
-    // if (questionsArray.length === 1) {
-    //   const matches = cleanedResponse.match(/[^?]+\?/g);
-
-    //   if (matches && matches.length === 5) {
-    //     questionsArray = matches.map((question) => question.trim());
-    //   }
-    // }
-
-    // console.log("PARSED QUESTIONS:", questionsArray);
-    // console.log("QUESTION COUNT:", questionsArray.length);
-
-    // if (questionsArray.length !== 5) {
-    //   return res.status(502).json({
-    //     message: `Expected 5 questions, received ${questionsArray.length}. Please try again.`,
-    //   });
-    // }
-
-    // ========== cahtgpt ===============
-
     const cleanedResponse = cleanAiResponse(aiResponse);
 
-let questionsArray = cleanedResponse
-  .split(/\r?\n/)
+// let questionsArray = cleanedResponse
+//   .split(/\r?\n/)
+//   .map((question) =>
+//     question.replace(/^\s*(?:\d+[.)-]\s*|[-*•]\s*)/, "").trim()
+//   )
+//   .filter(Boolean);
+
+// // If all questions come in one line, split by question marks
+// if (questionsArray.length === 1) {
+//   const matches = cleanedResponse.match(/[^?]+\?/g);
+
+//   if (matches) {
+//     questionsArray = matches.map((question) => question.trim());
+//   }
+// }
+
+let questionsArray = (cleanedResponse.match(/[^?]+\?/g) || [])
   .map((question) =>
-    question.replace(/^\s*(?:\d+[.)-]\s*|[-*•]\s*)/, "").trim()
+    question
+      .replace(/^\s*(?:\d+[.)-]\s*|[-*•]\s*)/, "")
+      .trim()
   )
   .filter(Boolean);
 
-// If all questions come in one line, split by question marks
-if (questionsArray.length === 1) {
-  const matches = cleanedResponse.match(/[^?]+\?/g);
-
-  if (matches) {
-    questionsArray = matches.map((question) => question.trim());
-  }
-}
-
+console.log("RAW AI RESPONSE:", aiResponse);
 console.log("PARSED QUESTIONS:", questionsArray);
 console.log("QUESTION COUNT:", questionsArray.length);
+
 
 // Reject if AI generated fewer than 5 questions
 if (questionsArray.length < 5) {
