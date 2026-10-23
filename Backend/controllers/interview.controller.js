@@ -76,7 +76,41 @@ Do not include Markdown or extra text.`,
 
     console.log("Cleaned AI Response:", cleanedResponse);
 
-    const parsed = JSON.parse(cleanedResponse);
+    // const parsed = JSON.parse(cleanedResponse);
+
+
+    let parsed;
+
+try {
+  parsed = JSON.parse(cleanedResponse);
+} catch {
+  console.error("Invalid evaluation JSON:", cleanedResponse);
+
+  return res.status(502).json({
+    message: "AI returned an invalid evaluation. Please try again.",
+  });
+}
+
+// const validScores = [
+//   parsed.confidence,
+//   parsed.communication,
+//   parsed.correctness,
+//   parsed.finalScore,
+// ].every(
+//   (score) =>
+//     typeof score === "number" &&
+//     Number.isFinite(score) &&
+//     score >= 0 &&
+//     score <= 10
+// );
+
+// if (!validScores || typeof parsed.feedback !== "string") {
+//   return res.status(502).json({
+//     message: "AI returned an invalid evaluation format.",
+//   });
+// }
+
+
 
     console.log("Parsed AI Response:", parsed);
     console.log("Is Array:", Array.isArray(parsed));
@@ -101,6 +135,8 @@ Do not include Markdown or extra text.`,
     }
   }
 };
+
+
 
 // GENERATE QUESTIONS
 
@@ -151,35 +187,74 @@ Resume: ${safeResume}
     // FIX: Keep only one messages declaration
     // ========= chatgpt ===========
     
+// const messages = [
+//   {
+//     role: "system",
+//     content: `You are a real human interviewer conducting a professional interview.
+
+// Speak in simple, natural English as if you are directly talking to the candidate.
+
+// STRICT OUTPUT RULES:
+// - Generate EXACTLY 5 interview questions, no more and no less.
+// - Each question must contain between 15 and 25 words.
+// - Each question must be a single complete sentence.
+// - Do NOT number the questions.
+// - Do NOT add explanations, headings, introductions, or extra text.
+// - Put exactly one question on each line.
+// - Return exactly 5 lines.
+// - Keep the language simple and conversational.
+// - Questions must be practical and realistic.
+// - Do not generate follow-up questions.
+
+// DIFFICULTY PROGRESSION:
+// Line 1: Easy
+// Line 2: Easy
+// Line 3: Medium
+// Line 4: Medium
+// Line 5: Hard
+
+// Make questions based on the candidate's role, experience, interview mode, projects, skills, and resume details.
+
+// Before responding, verify that the output contains exactly 5 questions.`
+//   },
+//   {
+//     role: "user",
+//     content: userPrompt,
+//   },
+// ];
+
 const messages = [
   {
     role: "system",
-    content: `You are a real human interviewer conducting a professional interview.
+    content: `You are a professional human interviewer.
 
-Speak in simple, natural English as if you are directly talking to the candidate.
+Generate exactly 5 practical interview questions based on the candidate's role,
+experience, interview mode, projects, skills, and resume.
 
-STRICT OUTPUT RULES:
-- Generate EXACTLY 5 interview questions, no more and no less.
-- Each question must contain between 15 and 25 words.
-- Each question must be a single complete sentence.
-- Do NOT number the questions.
-- Do NOT add explanations, headings, introductions, or extra text.
-- Put exactly one question on each line.
-- Return exactly 5 lines.
-- Keep the language simple and conversational.
-- Questions must be practical and realistic.
-- Do not generate follow-up questions.
+Use simple, natural English.
+Each question must be one complete sentence containing 15 to 25 words.
+Do not generate follow-up questions.
 
-DIFFICULTY PROGRESSION:
-Line 1: Easy
-Line 2: Easy
-Line 3: Medium
-Line 4: Medium
-Line 5: Hard
+Difficulty order:
+Question 1: Easy
+Question 2: Easy
+Question 3: Medium
+Question 4: Medium
+Question 5: Hard
 
-Make questions based on the candidate's role, experience, interview mode, projects, skills, and resume details.
+Return ONLY valid JSON in this exact structure:
+{
+  "questions": [
+    "First question?",
+    "Second question?",
+    "Third question?",
+    "Fourth question?",
+    "Fifth question?"
+  ]
+}
 
-Before responding, verify that the output contains exactly 5 questions.`
+The questions array must contain exactly 5 strings.
+Do not include Markdown or any text outside the JSON object.`,
   },
   {
     role: "user",
@@ -198,43 +273,60 @@ Before responding, verify that the output contains exactly 5 questions.`
       });
     }
 
-    const cleanedResponse = cleanAiResponse(aiResponse);
+//     const cleanedResponse = cleanAiResponse(aiResponse);
 
-// let questionsArray = cleanedResponse
-//   .split(/\r?\n/)
+// let questionsArray = (cleanedResponse.match(/[^?]+\?/g) || [])
 //   .map((question) =>
-//     question.replace(/^\s*(?:\d+[.)-]\s*|[-*•]\s*)/, "").trim()
+//     question
+//       .replace(/^\s*(?:\d+[.)-]\s*|[-*•]\s*)/, "")
+//       .trim()
 //   )
 //   .filter(Boolean);
 
-// // If all questions come in one line, split by question marks
-// if (questionsArray.length === 1) {
-//   const matches = cleanedResponse.match(/[^?]+\?/g);
+// console.log("RAW AI RESPONSE:", aiResponse);
+// console.log("PARSED QUESTIONS:", questionsArray);
+// console.log("QUESTION COUNT:", questionsArray.length);
 
-//   if (matches) {
-//     questionsArray = matches.map((question) => question.trim());
-//   }
+
+// // Reject if AI generated fewer than 5 questions
+// if (questionsArray.length < 5) {
+//   return res.status(502).json({
+//     message: `Expected 5 questions, received ${questionsArray.length}. Please try again.`,
+//   });
 // }
 
-let questionsArray = (cleanedResponse.match(/[^?]+\?/g) || [])
-  .map((question) =>
-    question
-      .replace(/^\s*(?:\d+[.)-]\s*|[-*•]\s*)/, "")
-      .trim()
-  )
-  .filter(Boolean);
 
-console.log("RAW AI RESPONSE:", aiResponse);
-console.log("PARSED QUESTIONS:", questionsArray);
-console.log("QUESTION COUNT:", questionsArray.length);
+const cleanedResponse = cleanAiResponse(aiResponse);
 
+let parsedResponse;
 
-// Reject if AI generated fewer than 5 questions
-if (questionsArray.length < 5) {
+try {
+  parsedResponse = JSON.parse(cleanedResponse);
+} catch (parseError) {
+  console.error("Invalid JSON from Gemini:", cleanedResponse);
+
   return res.status(502).json({
-    message: `Expected 5 questions, received ${questionsArray.length}. Please try again.`,
+    message: "AI returned an invalid JSON response. Please try again.",
   });
 }
+
+let questionsArray = parsedResponse.questions;
+
+if (
+  !Array.isArray(questionsArray) ||
+  questionsArray.length !== 5 ||
+  !questionsArray.every(
+    (question) =>
+      typeof question === "string" && question.trim().length > 0
+  )
+) {
+  return res.status(502).json({
+    message: "AI did not return exactly 5 valid questions. Please try again.",
+  });
+}
+
+questionsArray = questionsArray.map((question) => question.trim());
+
 
 // Keep exactly 5 questions if AI generated extra ones
 questionsArray = questionsArray.slice(0, 5);
@@ -381,10 +473,47 @@ Answer: ${answers}
     console.log("AI RESPONSE:", aiResponse);
     console.log("RESPONSE TYPE:", typeof aiResponse);
 
-    const cleanedResponse = cleanAiResponse(aiResponse);
-    console.log("CLEANED RESPONSE:", cleanedResponse);
+    // const cleanedResponse = cleanAiResponse(aiResponse);
+    // console.log("CLEANED RESPONSE:", cleanedResponse);
+    // const parsed = JSON.parse(cleanedResponse);
 
-    const parsed = JSON.parse(cleanedResponse);
+    
+const cleanedResponse = cleanAiResponse(aiResponse);
+console.log("CLEANED RESPONSE:", cleanedResponse);
+
+let parsed;
+
+try {
+  parsed = JSON.parse(cleanedResponse);
+} catch (error) {
+  console.error("Invalid AI JSON:", error);
+
+  return res.status(502).json({
+    message: "AI returned an invalid response. Please try again.",
+  });
+}
+
+const validScores = [
+  parsed.confidence,
+  parsed.communication,
+  parsed.correctness,
+  parsed.finalScore,
+].every(
+  (score) =>
+    typeof score === "number" &&
+    Number.isFinite(score) &&
+    score >= 0 &&
+    score <= 10
+);
+
+if (!validScores || typeof parsed.feedback !== "string") {
+  return res.status(502).json({
+    message: "AI returned an invalid evaluation format.",
+  });
+}
+
+
+
 
     question.answer = answers;
     question.confidence = parsed.confidence;
@@ -403,6 +532,8 @@ Answer: ${answers}
     return res.status(500).json({ message: error.message });
   }
 };
+
+
 
 // FINISH INTERVIEW
 

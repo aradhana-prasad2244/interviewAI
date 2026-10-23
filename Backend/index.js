@@ -1,5 +1,7 @@
 import express from "express";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
+import "dotenv/config";
+
 import connectDB from "./config/connectDB.js";
 import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
@@ -7,7 +9,12 @@ import userRouter from "./routes/user.route.js";
 import cors from "cors";
 import interviewRouter from "./routes/interview.route.js";
 import paymentRouter from "./routes/payment.route.js";
-dotenv.config();
+// dotenv.config();
+
+console.log(
+  "Gemini API key loaded:",
+  Boolean(process.env.GEMINI_API_KEY)
+);
 
 const app = express();
 
