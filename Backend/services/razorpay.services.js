@@ -8,3 +8,4 @@ const razorpay = new Razorpay({
 });
 
 export default razorpay;
+

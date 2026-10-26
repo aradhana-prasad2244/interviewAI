@@ -156,7 +156,3 @@ export const askAi = async ({ message }) => {
     throw error;
   }
 };
-
-/*
-  Keep your original OpenRouter implementation commented here.
-*/
