@@ -22,3 +22,4 @@ const Timer = ({ timeLeft, totalTime}) => {
 }
 
 export default Timer
+

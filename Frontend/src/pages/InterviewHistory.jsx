@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { serverUrl } from "../App";
 import { FaArrowLeft } from "react-icons/fa";
+import AuthModel from "../components/AuthModel";
 
 const InterviewHistory = () => {
   const [interviews, setInterviews] = useState([]);
@@ -25,7 +26,7 @@ const InterviewHistory = () => {
     };
 
     getMyInterviews();
-  }, []);
+  }, [AuthModel.isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-emerald-50 py-10">
